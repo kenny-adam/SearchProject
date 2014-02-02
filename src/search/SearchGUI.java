@@ -15,22 +15,48 @@ public class SearchGUI extends JFrame {
     public SearchGUI() {
        	 // Create a panel to hold items 
     	 JPanel panel = new JPanel(new GridBagLayout());
-    	 panel.setBackground(Color.GREEN);
-    	 //use constraints for arranging objects
+    	 JPanel panel1 = new JPanel();
+    	 
+    	 // Set color background to panel
+    	 panel.setBackground(Color.LIGHT_GRAY);
+    	 panel1.setBackground(Color.GRAY); 
+    	 
+    	// Add panel to the frame
+    	 add(panel,BorderLayout.NORTH);      
+         add(panel1);
+         
+    	 // Use constraints for arranging objects
          GridBagConstraints c = new GridBagConstraints();
          
+         // Create the menubar 
          JMenuBar menubar = new JMenuBar();
          setJMenuBar(menubar);
          
-         JMenu file = new JMenu ("Author");
-         menubar.add(file);
-         JMenuItem name = new JMenuItem("Lloyd Jayson Pintac");
-         file.add(name);
-         JMenuItem name1 = new JMenuItem("Adam Kenny");
-         file.add(name1);
-         JMenuItem name2 = new JMenuItem("Dang Yang");
-         file.add(name2);
+         // Build menus to menubar
+         JMenu menu = new JMenu ("Author");
+         menubar.add(menu);
+         JMenu menu1 = new JMenu ("Project");
+         menubar.add(menu1);
          
+         // Create a group of menu items
+         JMenuItem item = new JMenuItem("Lloyd Jayson Pintac");
+         menu.add(item);
+         JMenuItem item1 = new JMenuItem("Adam Kenny");
+         menu.add(item1);
+         JMenuItem item2 = new JMenuItem("Dang Yang");
+         menu.add(item2);
+         JMenuItem item3 = new JMenuItem("About");
+         menu1.add(item3);
+         
+         // Add action listener to menu item
+         item3.addActionListener(new ActionListener(){
+         public void actionPerformed(ActionEvent e){
+        	 JOptionPane.showMessageDialog(null, "Java II Advance Project\n by: **TeamNameHere**","Search Engine",// We need a group name
+        		    JOptionPane.INFORMATION_MESSAGE);
+         	}
+         });
+         
+         // Customize and arrange objects, texts and fonts 
          Font myFont = new Font("Algerian", Font.BOLD + Font.ITALIC, 26);
          Font font1 = new Font("Eras Light ITC", Font.BOLD,18);
          Font font = new Font("Arial Rounded", Font.BOLD,12);
@@ -52,18 +78,20 @@ public class SearchGUI extends JFrame {
          panel.add(Label, c);     
          
          final JTextField textBox = new JTextField("Text Here", 30);
+         textBox.setToolTipText("Type Here");
          c.gridx = 2;
          c.gridy = 2;
          c.insets = new Insets(10,10,10,10);
          panel.add(textBox, c);
          
          JButton okButton = new JButton("OK");
+         okButton.setToolTipText("Click Here");
          c.gridx = 2;
          c.gridy = 8;
          c.insets = new Insets(10,10,10,10);
          panel.add(okButton, c); 
          
-         
+         // Add radio buttons
      	JRadioButton radioButton = new JRadioButton("All of the Search Terms");
      	radioButton.setFont(font);
      	 c.gridx = 1;
@@ -82,12 +110,16 @@ public class SearchGUI extends JFrame {
      	 c.gridx = 3;
          c.gridy = 20;	
      	panel.add(radioButton_2,c);
-  
-        add(panel); // Add panel to the frame
+     	
+     	// Create group of radio button
+     	ButtonGroup group = new ButtonGroup();
+     	group.add(radioButton);
+     	group.add(radioButton_1);
+     	group.add(radioButton_2);
+     	
 
         // create and register button listener
         okButton.addActionListener(new ActionListener() {
-            @Override
             public void actionPerformed(ActionEvent e) {
             	 tempLabel.setText(textBox.getText());
             }
@@ -98,7 +130,7 @@ public class SearchGUI extends JFrame {
     	// create and display window frame
         JFrame frame = new SearchGUI();
         frame.setTitle("Search Engine");
-        frame.setSize(800, 600);
+        frame.setSize(1360, 800);
         frame.setLocationRelativeTo(null); // center the frame
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setVisible(true);
