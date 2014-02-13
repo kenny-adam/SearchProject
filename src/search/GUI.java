@@ -34,6 +34,9 @@ import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
 
 import java.awt.SystemColor;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import javax.swing.ImageIcon;
 
 import javax.swing.JSplitPane;
 import javax.swing.JTable;
@@ -49,6 +52,7 @@ public class GUI extends JFrame {
 	 */
 	public static void main(String[] args) {
 		EventQueue.invokeLater(new Runnable() {
+                        @Override
 			public void run() {
 				try {
 					GUI frame = new GUI();
@@ -68,13 +72,22 @@ public class GUI extends JFrame {
 		setTitle("TeamName Search Engine v0.1");
 		setResizable(false);
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		setBounds(100, 100, 800, 600);
+		setBounds(100, 100, 806, 606);
 		contentPane = new JPanel();
-		contentPane.setBackground(Color.WHITE);
+                
+                //Creates custom color 
+                Color customColor = new Color(255, 228, 225);
+		contentPane.setBackground(customColor);
+                
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 		setContentPane(contentPane);
 		contentPane.setLayout(null);
 		setLocationRelativeTo(null); // center the frame
+                
+                //Sets image icon for frame, please check if it's correct.
+                java.net.URL imageURL = GUI.class.getResource("images/index.jpg");
+                ImageIcon icon = new ImageIcon(imageURL);
+                setIconImage(icon.getImage());
 		
 		// create and add menu items
 		JMenuBar menuBar = new JMenuBar();
@@ -97,6 +110,7 @@ public class GUI extends JFrame {
         exitMenuItem.setMnemonic('x');
         fileMenu.add(exitMenuItem);
         exitMenuItem.addActionListener(new ActionListener() {
+                @Override
         	public void actionPerformed(ActionEvent e) {
         		System.exit(0); // quit program
         	}
@@ -108,6 +122,7 @@ public class GUI extends JFrame {
         aboutMenuItem.setMnemonic('a');
         helpMenu.add(aboutMenuItem);
         aboutMenuItem.addActionListener(new ActionListener() {
+                @Override
         	public void actionPerformed(ActionEvent e) {
 				JOptionPane.showMessageDialog(null, "TeamName Search Engine v0.1\n" +
 						"Authors: x, y, z","TeamName Search Engine",
@@ -140,6 +155,14 @@ public class GUI extends JFrame {
         searchTextBox.setBounds(6, 49, 475, 24);
         searchPanel.add(searchTextBox);
         
+        //Clears the text field when clicked
+        searchTextBox.addMouseListener(new MouseAdapter(){
+            @Override 
+            public void mouseClicked(MouseEvent e){
+                searchTextBox.setText("");
+            }
+         });
+        
         // combo box to select search type
         final JComboBox searchTypeComboBox = new JComboBox();
         searchTypeComboBox.setBounds(493, 46, 160, 32);
@@ -148,9 +171,11 @@ public class GUI extends JFrame {
         
         // button to activate search
         JButton findButton = new JButton("Find it!");
+        findButton.setMnemonic('i');
         findButton.setBounds(665, 46, 96, 32);
         searchPanel.add(findButton);
         findButton.addActionListener(new ActionListener() {
+                @Override
         	public void actionPerformed(ActionEvent e) {
         		JOptionPane.showMessageDialog(null,
         				(String)searchTypeComboBox.getSelectedItem(),
@@ -212,9 +237,11 @@ public class GUI extends JFrame {
         
         // button to add files to index
         JButton addFileButton = new JButton("Add File to Index...");
+        addFileButton.setMnemonic('a');
         addFileButton.setBounds(6, 463, 192, 29);
         maintenancePanel.add(addFileButton);
         addFileButton.addActionListener(new ActionListener() {
+                @Override
         	public void actionPerformed(ActionEvent e) {
         		JOptionPane.showMessageDialog(null, "add files here",
         				"title", JOptionPane.INFORMATION_MESSAGE);
@@ -223,9 +250,11 @@ public class GUI extends JFrame {
         
         // button to re-build index if files change
         JButton rebuildIndexButton = new JButton("Rebuild Index");
+        rebuildIndexButton.setMnemonic('b');
         rebuildIndexButton.setBounds(569, 463, 192, 29);
         maintenancePanel.add(rebuildIndexButton);
         rebuildIndexButton.addActionListener(new ActionListener() {
+                @Override
         	public void actionPerformed(ActionEvent e) {
         		JOptionPane.showMessageDialog(null, "rebuild index here",
         				"title", JOptionPane.INFORMATION_MESSAGE);
@@ -234,9 +263,11 @@ public class GUI extends JFrame {
         
         // button to remove selected files from index
         JButton removeFileButton = new JButton("Remove Selected Files");
+        removeFileButton.setMnemonic('m');
         removeFileButton.setBounds(292, 463, 192, 29);
         maintenancePanel.add(removeFileButton);
         removeFileButton.addActionListener(new ActionListener() {
+                @Override
         	public void actionPerformed(ActionEvent e) {
         		JOptionPane.showMessageDialog(null, "remove files here",
         				"title", JOptionPane.INFORMATION_MESSAGE);
