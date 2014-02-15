@@ -1,15 +1,12 @@
 package search;
 
-import java.awt.BorderLayout;
+// import required items
 import java.awt.EventQueue;
-
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
 import javax.swing.JLabel;
-
 import java.awt.Font;
-
 import javax.swing.JMenuBar;
 import javax.swing.JTextField;
 import javax.swing.JMenuItem;
@@ -17,42 +14,37 @@ import javax.swing.SwingConstants;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.DefaultComboBoxModel;
-
 import java.awt.Color;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
-
 import javax.swing.JOptionPane;
 import javax.swing.JMenu;
 import javax.swing.JList;
-import javax.swing.AbstractListModel;
-import javax.swing.table.AbstractTableModel;
-import javax.swing.border.BevelBorder;
-import javax.swing.border.LineBorder;
 import javax.swing.ListSelectionModel;
 import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
-
-import java.awt.SystemColor;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import javax.swing.ImageIcon;
-
-import javax.swing.JSplitPane;
 import javax.swing.JTable;
 
+/** A search program used to find words inside text documents
+ * @author Adam Kenny
+ * @author Dang Yang
+ * @author Lloyd Pintac
+ */
+@SuppressWarnings("serial")
 public class GUI extends JFrame {
-
 	private JPanel contentPane;
 	private JTextField searchTextBox;
 	private JTable indexTable;
 
 	/**
-	 * Launch the application.
+	 * main method to launch the application.
 	 */
 	public static void main(String[] args) {
 		EventQueue.invokeLater(new Runnable() {
-                        @Override
+            @Override
 			public void run() {
 				try {
 					GUI frame = new GUI();
@@ -68,15 +60,21 @@ public class GUI extends JFrame {
 	 * Create the frame.
 	 */
 	public GUI() {
+		// constants for easy access
+		final String TEAM_NAME = "PKnY"; // like the fashion company DKNY, ha!
+		final double VERSION_NUM = 1.0;
+		final String AUTHORS = "Adam Kenny, Dang Yang, Lloyd Pintac";
+		final int FILES_INDEXED = 0;
+		
+		//Creates custom color 
+		Color customColor = new Color(255, 228, 225);
+		
 		setBackground(Color.WHITE);
-		setTitle("TeamName Search Engine v0.1");
+		setTitle(TEAM_NAME + " Search Engine v" + VERSION_NUM);
 		setResizable(false);
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setBounds(100, 100, 806, 606);
 		contentPane = new JPanel();
-                
-                //Creates custom color 
-                Color customColor = new Color(255, 228, 225);
 		contentPane.setBackground(customColor);
                 
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
@@ -84,17 +82,16 @@ public class GUI extends JFrame {
 		contentPane.setLayout(null);
 		setLocationRelativeTo(null); // center the frame
                 
-                //Sets image icon for frame, please check if it's correct.
-                java.net.URL imageURL = GUI.class.getResource("images/index.jpg");
-                ImageIcon icon = new ImageIcon(imageURL);
-                setIconImage(icon.getImage());
+        //Sets image icon for frame
+        java.net.URL imageURL = GUI.class.getResource("images/index.jpg");
+        ImageIcon icon = new ImageIcon(imageURL);
+        setIconImage(icon.getImage());
 		
 		// create and add menu items
 		JMenuBar menuBar = new JMenuBar();
 		menuBar.setBackground(Color.LIGHT_GRAY);
 		menuBar.setBounds(0, 0, 800, 22);
 		contentPane.add(menuBar);
-		
         JMenu fileMenu = new JMenu ("File");
         fileMenu.setBackground(Color.LIGHT_GRAY);
         menuBar.add(fileMenu);
@@ -110,7 +107,7 @@ public class GUI extends JFrame {
         exitMenuItem.setMnemonic('x');
         fileMenu.add(exitMenuItem);
         exitMenuItem.addActionListener(new ActionListener() {
-                @Override
+            @Override
         	public void actionPerformed(ActionEvent e) {
         		System.exit(0); // quit program
         	}
@@ -122,32 +119,33 @@ public class GUI extends JFrame {
         aboutMenuItem.setMnemonic('a');
         helpMenu.add(aboutMenuItem);
         aboutMenuItem.addActionListener(new ActionListener() {
-                @Override
+            @Override
         	public void actionPerformed(ActionEvent e) {
-				JOptionPane.showMessageDialog(null, "TeamName Search Engine v0.1\n" +
-						"Authors: x, y, z","TeamName Search Engine",
+				JOptionPane.showMessageDialog(null,
+						TEAM_NAME + " Search Engine v" + VERSION_NUM + "\n" +
+						"Authors: " + AUTHORS, TEAM_NAME + " Search Engine",
 	        		    JOptionPane.INFORMATION_MESSAGE);
         	}
         });
         
         // tabbed pane to hold search and maintenance panels
         JTabbedPane tabbedPane = new JTabbedPane(JTabbedPane.TOP);
-        tabbedPane.setBackground(Color.WHITE);
+        tabbedPane.setBackground(customColor);
         tabbedPane.setBounds(6, 28, 788, 544);
         contentPane.add(tabbedPane);
         
         // search panel
         JPanel searchPanel = new JPanel();
-        searchPanel.setBackground(Color.WHITE);
+        searchPanel.setBackground(customColor);
         tabbedPane.addTab("Search", null, searchPanel, null);
         searchPanel.setLayout(null);
         
         // simple search engine label
-        JLabel searchEngineLabel = new JLabel("TeamName Search Engine");
+        JLabel searchEngineLabel = new JLabel(TEAM_NAME + " Search Engine");
         searchEngineLabel.setBounds(6, 6, 755, 31);
         searchPanel.add(searchEngineLabel);
         searchEngineLabel.setHorizontalAlignment(SwingConstants.CENTER);
-        searchEngineLabel.setFont(new Font("Nanum Brush Script", Font.BOLD, 32));
+        searchEngineLabel.setFont(new Font("Arial", Font.BOLD, 24));
         
         // text box to enter search terms
         searchTextBox = new JTextField();
@@ -159,7 +157,10 @@ public class GUI extends JFrame {
         searchTextBox.addMouseListener(new MouseAdapter(){
             @Override 
             public void mouseClicked(MouseEvent e){
-                searchTextBox.setText("");
+            	// only clear textbox if default text is entered
+            	if (searchTextBox.getText().equals("Enter search term here")) {
+            		searchTextBox.setText("");            		
+            	}
             }
          });
         
@@ -175,12 +176,24 @@ public class GUI extends JFrame {
         findButton.setBounds(665, 46, 96, 32);
         searchPanel.add(findButton);
         findButton.addActionListener(new ActionListener() {
-                @Override
+            @Override
         	public void actionPerformed(ActionEvent e) {
-        		JOptionPane.showMessageDialog(null,
-        				(String)searchTypeComboBox.getSelectedItem(),
-        				"title",
-	        		    JOptionPane.INFORMATION_MESSAGE);
+            	if (searchTypeComboBox.getSelectedIndex() == 0) {
+            		// perform all terms search
+            		JOptionPane.showMessageDialog(null,
+            				"'all terms' search placeholder",
+            				"title", JOptionPane.INFORMATION_MESSAGE);
+            	} else if (searchTypeComboBox.getSelectedIndex() == 1) {
+            		// perform any term search
+            		JOptionPane.showMessageDialog(null,
+            				"'any term' search placeholder",
+            				"title", JOptionPane.INFORMATION_MESSAGE);
+            	} else {
+            		// perform exact phrase search
+            		JOptionPane.showMessageDialog(null,
+            				"'exact phrase' search placeholder",
+            				"title", JOptionPane.INFORMATION_MESSAGE);
+            	}
         	}
         });
 
@@ -199,12 +212,12 @@ public class GUI extends JFrame {
         
         // maintenance panel
         JPanel maintenancePanel = new JPanel();
-        maintenancePanel.setBackground(Color.WHITE);
+        maintenancePanel.setBackground(customColor);
         tabbedPane.addTab("Maintenance", null, maintenancePanel, null);
         maintenancePanel.setLayout(null);
         
         // label describing number of indexed files
-        JLabel indexLabel = new JLabel("Number of files currently indexed: x");
+        JLabel indexLabel = new JLabel("Number of files currently indexed: " + FILES_INDEXED);
         indexLabel.setHorizontalAlignment(SwingConstants.CENTER);
         indexLabel.setBounds(6, 6, 755, 16);
         maintenancePanel.add(indexLabel);
@@ -215,6 +228,7 @@ public class GUI extends JFrame {
         maintenancePanel.add(indexScrollPane);
         
         // table listing all indexed files and their status
+        // TODO do not allow user to edit table items
         String[] tableColumnNames = {"File Name", "Status"};
         Object[][] tableData = {
                 {"0a", "0b"},
@@ -241,7 +255,7 @@ public class GUI extends JFrame {
         addFileButton.setBounds(6, 463, 192, 29);
         maintenancePanel.add(addFileButton);
         addFileButton.addActionListener(new ActionListener() {
-                @Override
+            @Override
         	public void actionPerformed(ActionEvent e) {
         		JOptionPane.showMessageDialog(null, "add files here",
         				"title", JOptionPane.INFORMATION_MESSAGE);
@@ -254,7 +268,7 @@ public class GUI extends JFrame {
         rebuildIndexButton.setBounds(569, 463, 192, 29);
         maintenancePanel.add(rebuildIndexButton);
         rebuildIndexButton.addActionListener(new ActionListener() {
-                @Override
+            @Override
         	public void actionPerformed(ActionEvent e) {
         		JOptionPane.showMessageDialog(null, "rebuild index here",
         				"title", JOptionPane.INFORMATION_MESSAGE);
@@ -267,7 +281,7 @@ public class GUI extends JFrame {
         removeFileButton.setBounds(292, 463, 192, 29);
         maintenancePanel.add(removeFileButton);
         removeFileButton.addActionListener(new ActionListener() {
-                @Override
+            @Override
         	public void actionPerformed(ActionEvent e) {
         		JOptionPane.showMessageDialog(null, "remove files here",
         				"title", JOptionPane.INFORMATION_MESSAGE);
