@@ -65,6 +65,7 @@ public class GUI extends JFrame {
 		final double VERSION_NUM = 1.0;
 		final String AUTHORS = "Adam Kenny, Dang Yang, Lloyd Pintac";
 		final int FILES_INDEXED = 0;
+		final String INDEX_FILE = "SearchProjectIndex.txt";
 		
 		//Creates custom color 
 		Color customColor = new Color(255, 228, 225);
