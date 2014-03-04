@@ -1,0 +1,48 @@
+This file describes the layout of SearchProjectIndex.txt so that an outside
+program may be written to read/write data to the file.
+
+Line 1 has two entries:
+first is the name of the program 'SearchProject' followed by a single space,
+second is the version number of the index.
+If the program name or the version number do not match then the index file is
+assumed to be incorrect or out of date and the file will not be used.
+
+Line 2 has a single integer, the number of files currently indexed.
+If there are zero files indexed then line 2 should read 0 and not be blank.
+
+Line 3 should be blank, used as a separator.
+
+Lines 4+ will be the list of files indexed;
+[index number]s should start at 0, followed by a single space,
+[file path]s should be a fully qualified path, followed by a single space,
+and [last modification time]s are standard UNIX time.
+All 3 elements are required, using the following format:
+[index number] [file path] [last modification time]
+[index number] [file path] [last modification time]
+[index number] [file path] [last modification time]
+
+The next line after the final file in the index is left blank as a separator.
+
+The final section is a list of the words indexed along with their locations in
+each file they are found in;
+[word] is the actual word itself, followed by a single space,
+[index number] is an index of the file the word is found in, followed by a comma,
+[location] is the word number in the document, counting starts at 0.
+[index number],[location] may be repeated as many times as a word is found.
+Using the following format:
+[word] [index number],[location] [index number],[location]...
+[word] [index number],[location] [index number],[location]...
+[word] [index number],[location] [index number],[location]...
+
+Below is a sample SearchProjectIndex.txt file:
+
+SearchProject 1.0
+2
+
+0 /Users/John/Java/HelloWorld.txt 1393948365
+1 /Users/Jane/books/TheHobbit.txt 1393948366
+
+hello 0,0
+world 0,1
+Bilbo 1,8 1,423 1,524 1,987 1,2341
+Baggins 1,12 1,342 1,543 1,897
