@@ -2,11 +2,14 @@ package search;
 
 // import required items
 import java.awt.EventQueue;
+
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
 import javax.swing.JLabel;
+
 import java.awt.Font;
+
 import javax.swing.JMenuBar;
 import javax.swing.JTextField;
 import javax.swing.JMenuItem;
@@ -14,18 +17,27 @@ import javax.swing.SwingConstants;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.DefaultComboBoxModel;
+
 import java.awt.Color;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
+
 import javax.swing.JOptionPane;
 import javax.swing.JMenu;
 import javax.swing.JList;
 import javax.swing.ListSelectionModel;
 import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
+
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+
 import javax.swing.ImageIcon;
 import javax.swing.JFileChooser;
 import javax.swing.JTable;
@@ -67,10 +79,11 @@ public class GUI extends JFrame {
 	public GUI() {
 		// constants for easy access
 		final String TEAM_NAME = "PKnY"; // like the fashion company DKNY, ha!
-		final double VERSION_NUM = 1.1;
+		final double VERSION_NUM = 1.2;
 		final String AUTHORS = "Adam Kenny, Dang Yang, Lloyd Pintac";
-		//final int FILES_INDEXED = 0;
-		final String INDEX_FILE = "SearchProjectIndex.txt";
+		final String INDEX_HEADER = "SearchProject";
+		final int FILES_INDEXED = 0;
+		final String INDEX_FILE = "src/search/SearchProjectIndex.txt";
                 
 		//Creates custom color 
 		Color customColor = new Color(255, 228, 225);
@@ -297,6 +310,8 @@ public class GUI extends JFrame {
                             removeFileButtonActionPerformed(e);  
                         }
                 });
+                
+                checkIndex(tabbedPane, INDEX_HEADER, VERSION_NUM, INDEX_FILE); // check index for changes
         }//End of public GUI
                 
         private void addFileButtonActionPerformed(ActionEvent e) {
@@ -332,4 +347,115 @@ public class GUI extends JFrame {
                 }
             }        
         } 
+        
+        // method that checks the index file for changes
+        private void checkIndex(JTabbedPane p, String hdr, double vers, String file) {
+            boolean outOfDate = false; // assume index is up to date at first
+            int filesFound = 0;
+            int filesExpected = 0;
+            
+            try {
+            	// load and check index file
+                String line;
+                int lineNum = 1;
+                int blanksEncountered = 0;
+                BufferedReader in = new BufferedReader(new FileReader(file));
+                while ((line = in.readLine()) != null) {
+
+                	// first line is header section
+                	if (lineNum == 1) {
+                		String[] header = line.split(" ");
+                		if (!(header[0].equals(hdr) && header[1].equals(String.valueOf(vers)))) {
+                			// header line is wrong, show maintenance panel
+                			outOfDate = true;
+                			break;
+                		}
+                	}
+                	
+                	// second line is number of indexed files
+                	if (lineNum == 2) {
+                		filesExpected = Integer.parseInt(line);
+                	}
+                	
+                	// line 3 is a separator line
+                	if (lineNum == 3) {
+                		if (line.equals("")) {
+                			// we are now entering the file list after this line
+                			++blanksEncountered;
+                		} else {
+                			// line 3 was not blank, show maintenance panel
+                			outOfDate = true;
+                			break;
+                		}
+                	}
+                	
+                	// lines 4+ begin the listing of indexed files
+                	if (lineNum >= 4) {
+                		if (line.equals("")) {
+                			// following lines will be word list
+                			++blanksEncountered;
+                		}
+                		
+                		
+                		if (blanksEncountered == 1) {
+                			// try to parse the file lines
+                			try {
+                				// lines after first blank are file listing
+                				String[] fileListing = line.split(" ");
+                				File f = new File(fileListing[1]);
+                				long timeStamp = Long.parseLong(fileListing[2]);
+                				++filesFound;
+                				
+                				if (!(f.exists())) {
+                					// file could not be found, show maintenance panel
+                					outOfDate = true;
+                					break;
+                				}
+                				
+                				if (!( f.lastModified() == timeStamp)) {
+                					// last mod time does not match, show maintenance panel
+                					outOfDate = true;
+                					break;
+                				}
+                				
+                			} catch (ArrayIndexOutOfBoundsException e) {
+                				// file line not formatted correctly, show maint window
+                				outOfDate = true;
+                				break;
+                			}
+                		} else if (blanksEncountered == 2) {
+                			// reached end of files listing, verify number of
+                			// files found matches expected files found
+                			if (filesFound != filesExpected) {
+                				// numbers do not match, show maintenance window
+                				outOfDate = true;
+                				break;
+                			}
+                		}
+                	}                	
+                	++lineNum;
+                }
+                in.close();
+            } catch (IOException e) {
+                // error reading index file, create a new one
+                try {
+                    BufferedWriter out = new BufferedWriter(new FileWriter(file));
+                    out.write(hdr + " " + vers + "\n0\n");
+                    out.close();
+                    JOptionPane.showMessageDialog(null,
+                            "Index file corrupt or not found.\nA new one has been created.",
+                            "Maintenance", JOptionPane.INFORMATION_MESSAGE);
+                } catch (IOException ex) {
+                    System.err.println("error");
+                }
+            }
+
+            // show maintenance panel if index is out of date
+            if (outOfDate) {
+                JOptionPane.showMessageDialog(null,
+                        "Index needs to be re-built!\nMaintenance panel will be shown.",
+                        "Maintenance", JOptionPane.INFORMATION_MESSAGE);
+                p.setSelectedIndex(1);      
+            }
+        }   
 }//End of class GUI

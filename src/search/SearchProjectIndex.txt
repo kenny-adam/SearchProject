@@ -1,2 +1,2 @@
-SearchProject 1.0
+SearchProject 1.2
 0
