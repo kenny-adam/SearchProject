@@ -316,6 +316,7 @@ public class GUI extends JFrame {
                 checkIndex(tabbedPane, INDEX_HEADER, VERSION_NUM, INDEX_FILE); // check index for changes
         }//End of public GUI
                 
+        //Method to add file to table
 	private void addFileButtonActionPerformed(ActionEvent e) {
         int returnVal = fileChooser.showOpenDialog(null);
         if (returnVal == JFileChooser.APPROVE_OPTION) {
@@ -325,11 +326,11 @@ public class GUI extends JFrame {
 
             java.util.Date date = new java.util.Date();
             Timestamp Timestamp = (new Timestamp(date.getTime()));
-			model.addRow(new Object[]{openFile.getAbsolutePath(), "Indexed", Timestamp });
+            model.addRow(new Object[]{openFile.getAbsolutePath(), "Indexed", Timestamp });
            
         }
     } 
-        
+        //Method to remove file from table
         private void removeFileButtonActionPerformed(ActionEvent e) {                                          
             //Create table model to manage table data
             DefaultTableModel model = (DefaultTableModel) indexTable.getModel();
@@ -337,19 +338,26 @@ public class GUI extends JFrame {
             if(indexTable.getSelectedRow() == -1){
                 if(indexTable.getRowCount() == 0){
                      JOptionPane.showMessageDialog(null, "Table is empty.",
-                                                    "Remove", JOptionPane.INFORMATION_MESSAGE);
+                                                    "Remove File", JOptionPane.INFORMATION_MESSAGE);
                 }else{
-                     JOptionPane.showMessageDialog(null, "Please select a row to remove.",
+                     JOptionPane.showMessageDialog(null, "Please select row(s) to remove file.",
                                                     "Remove File", JOptionPane.INFORMATION_MESSAGE);
                 }           
             }else{
-                Object removeFile = indexTable.getModel().getValueAt(indexTable.getSelectedRow(), 0);;
-                String removeTxt = removeFile + "\n";
-                response = JOptionPane.showConfirmDialog(null, "Do you want to remove file: \n" + removeTxt,
+                //Collect selected row(s) to remove
+                String removeTxt = "\n";
+                int[] rows = indexTable.getSelectedRows();
+                for(int count = 0; count < rows.length; count++){
+                    Object removeFile = indexTable.getModel().getValueAt(rows[count],0);
+                    removeTxt += removeFile + "\n";
+                }
+                response = JOptionPane.showConfirmDialog(null, "Do you want to remove file(s): " + removeTxt,
                                         "Remove File", JOptionPane.YES_NO_OPTION);
-                
+                //Remove the selected row(s)
                 if(response == JOptionPane.YES_OPTION){
-                    model.removeRow(indexTable.getSelectedRow());
+                    for(int count = 0; count < rows.length; count++){
+                        model.removeRow(rows[count]-count);
+                    }
                 }
             }        
         } 
