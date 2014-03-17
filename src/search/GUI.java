@@ -3,6 +3,8 @@ package search;
 // import required items
 import java.awt.EventQueue;
 
+import java.sql.Timestamp;
+import java.util.Date;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
@@ -252,7 +254,7 @@ public class GUI extends JFrame {
                 indexTable.setModel(new DefaultTableModel(
                     new Object [][] {},
                     new String [] {
-                        "File Name", "Status"
+                        "File Name", "Status", "Time"
                     }
                 ) {
                     //Data will not be edited
@@ -314,15 +316,19 @@ public class GUI extends JFrame {
                 checkIndex(tabbedPane, INDEX_HEADER, VERSION_NUM, INDEX_FILE); // check index for changes
         }//End of public GUI
                 
-        private void addFileButtonActionPerformed(ActionEvent e) {
-            int returnVal = fileChooser.showOpenDialog(null);
-            if (returnVal == JFileChooser.APPROVE_OPTION) {
-                File openFile = fileChooser.getSelectedFile();
-                //Create table model to manage table data
-                DefaultTableModel model = (DefaultTableModel) indexTable.getModel();
-                model.addRow(new Object[]{openFile.getAbsolutePath(), "Indexed"});
-            }
-        } 
+	private void addFileButtonActionPerformed(ActionEvent e) {
+        int returnVal = fileChooser.showOpenDialog(null);
+        if (returnVal == JFileChooser.APPROVE_OPTION) {
+            File openFile = fileChooser.getSelectedFile();
+            //Create table model to manage table data
+            DefaultTableModel model = (DefaultTableModel) indexTable.getModel(); 
+
+            java.util.Date date = new java.util.Date();
+            Timestamp Timestamp = (new Timestamp(date.getTime()));
+			model.addRow(new Object[]{openFile.getAbsolutePath(), "Indexed", Timestamp });
+           
+        }
+    } 
         
         private void removeFileButtonActionPerformed(ActionEvent e) {                                          
             //Create table model to manage table data
