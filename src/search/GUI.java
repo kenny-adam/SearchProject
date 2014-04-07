@@ -2,16 +2,16 @@ package search;
 
 // import required items
 import java.awt.EventQueue;
-
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
+import java.util.Scanner;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
 import javax.swing.JLabel;
-
 import java.awt.Font;
-
 import javax.swing.JMenuBar;
 import javax.swing.JTextField;
 import javax.swing.JMenuItem;
@@ -19,7 +19,6 @@ import javax.swing.SwingConstants;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.DefaultComboBoxModel;
-
 import java.awt.Color;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
@@ -30,16 +29,15 @@ import javax.swing.JList;
 import javax.swing.ListSelectionModel;
 import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
-
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-
 import javax.swing.ImageIcon;
 import javax.swing.JFileChooser;
 import javax.swing.JTable;
@@ -57,7 +55,13 @@ public class GUI extends JFrame {
 	private JTable indexTable = new JTable();
         
         //Create file chooser
-        final JFileChooser fileChooser = new JFileChooser();
+	final JFileChooser fileChooser = new JFileChooser();
+	private Object list;
+	private boolean searchResult;
+	private JScrollPane resultScrollPane;
+	private List<String> myList;
+	private String filePath;
+	
 	/**
 	 * main method to launch the application.
 	 */
@@ -143,7 +147,7 @@ public class GUI extends JFrame {
                     @Override
                         public void actionPerformed(ActionEvent e) {
                                         JOptionPane.showMessageDialog(null,
-                                                        TEAM_NAME + " Search Engine v" + VERSION_NUM + "\n" +
+                                                        TEAM_NAME + " Search Engine v " + VERSION_NUM + "\n" +
                                                         "Authors: " + AUTHORS, TEAM_NAME + " Search Engine",
                                             JOptionPane.INFORMATION_MESSAGE);
                         }
@@ -197,13 +201,11 @@ public class GUI extends JFrame {
                 findButton.setBounds(665, 46, 96, 32);
                 searchPanel.add(findButton);
                 findButton.addActionListener(new ActionListener() {
-                    @Override
-                        public void actionPerformed(ActionEvent e) {
+                    public void actionPerformed(ActionEvent e) {
+                    	 clickButtonActionPerformed(e);
                         if (searchTypeComboBox.getSelectedIndex() == 0) {
-                                // perform all terms search
-                                JOptionPane.showMessageDialog(null,
-                                                "'all terms' search placeholder",
-                                                "title", JOptionPane.INFORMATION_MESSAGE);
+                                
+                         
                         } else if (searchTypeComboBox.getSelectedIndex() == 1) {
                                 // perform any term search
                                 JOptionPane.showMessageDialog(null,
@@ -220,16 +222,9 @@ public class GUI extends JFrame {
 
                 // scroll pane to hold result listing
                 JScrollPane resultScrollPane = new JScrollPane();
+                resultScrollPane = new JScrollPane();
                 resultScrollPane.setBounds(6, 80, 755, 412);
                 searchPanel.add(resultScrollPane);
-
-                // actual listing of search results
-                String[] listData = {"zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine"};
-                JList resultList = new JList(listData);
-                resultScrollPane.setViewportView(resultList);
-                resultList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-                resultList.setBorder(null);
-                resultList.setBackground(Color.WHITE);
 
                 // maintenance panel
                 JPanel maintenancePanel = new JPanel();
@@ -315,19 +310,58 @@ public class GUI extends JFrame {
                 
                 checkIndex(tabbedPane, INDEX_HEADER, VERSION_NUM, INDEX_FILE); // check index for changes
         }//End of public GUI
-                
+	
+            //Method to search text
+	private void clickButtonActionPerformed(ActionEvent e) {
+	 		
+		if(myList.toString().toLowerCase().contains(searchTextBox.getText().toLowerCase()))
+		{					
+			String[] listData = {filePath};
+            @SuppressWarnings("unchecked")
+			JList resultList = new JList(listData);
+            resultScrollPane.setViewportView(resultList);
+            resultList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+            resultList.setBorder(null);
+            resultList.setBackground(Color.WHITE);
+		}
+		else
+		{
+			String[] listData = {};
+            @SuppressWarnings("unchecked")
+			JList resultList = new JList(listData);
+            resultScrollPane.setViewportView(resultList);
+            resultList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+            resultList.setBorder(null);
+            resultList.setBackground(Color.WHITE);
+		}		
+ 			
+ 	}
         //Method to add file to table
 	private void addFileButtonActionPerformed(ActionEvent e) {
         int returnVal = fileChooser.showOpenDialog(null);
         if (returnVal == JFileChooser.APPROVE_OPTION) {
             File openFile = fileChooser.getSelectedFile();
-            //Create table model to manage table data
+            
+            try {
+				Scanner input = new Scanner(openFile);
+				filePath = openFile.getAbsolutePath();
+				
+				myList = new ArrayList<>();
+				while(input.hasNextLine())
+				{
+					myList.add(input.nextLine());
+				}
+				
+			} catch (FileNotFoundException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+            
+            
             DefaultTableModel model = (DefaultTableModel) indexTable.getModel(); 
-
             java.util.Date date = new java.util.Date();
             Timestamp Timestamp = (new Timestamp(date.getTime()));
-            model.addRow(new Object[]{openFile.getAbsolutePath(), "Indexed", Timestamp });
-           
+			model.addRow(new Object[]{openFile.getAbsolutePath(), "Indexed", Timestamp });
         }
     } 
         //Method to remove file from table
