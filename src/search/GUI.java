@@ -221,7 +221,6 @@ public class GUI extends JFrame {
                 });
 
                 // scroll pane to hold result listing
-                JScrollPane resultScrollPane = new JScrollPane();
                 resultScrollPane = new JScrollPane();
                 resultScrollPane.setBounds(6, 80, 755, 412);
                 searchPanel.add(resultScrollPane);
@@ -275,7 +274,6 @@ public class GUI extends JFrame {
                 addFileButton.setBounds(6, 463, 192, 29);
                 maintenancePanel.add(addFileButton);
                 addFileButton.addActionListener(new ActionListener() {
-                        @Override
                             public void actionPerformed(ActionEvent e){
                                 //Perform the add file method
                                 addFileButtonActionPerformed(e);
@@ -301,7 +299,6 @@ public class GUI extends JFrame {
                 removeFileButton.setBounds(292, 463, 192, 29);
                 maintenancePanel.add(removeFileButton);
                 removeFileButton.addActionListener(new ActionListener() {
-                    @Override
                         public void actionPerformed(ActionEvent e) {
                             //Perform the remove file method
                             removeFileButtonActionPerformed(e);  
