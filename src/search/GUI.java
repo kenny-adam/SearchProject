@@ -53,7 +53,7 @@ public class GUI extends JFrame {
 	private JPanel contentPane;
 	private JTextField searchTextBox;
 	private JTable indexTable = new JTable();
-        
+        private ArrayList<String> fileList = new ArrayList();
         //Create file chooser
 	final JFileChooser fileChooser = new JFileChooser();
 	private Object list;
@@ -202,15 +202,14 @@ public class GUI extends JFrame {
                 searchPanel.add(findButton);
                 findButton.addActionListener(new ActionListener() {
                     public void actionPerformed(ActionEvent e) {
-                    	 clickButtonActionPerformed(e);
                         if (searchTypeComboBox.getSelectedIndex() == 0) {
-                                
-                         
-                        } else if (searchTypeComboBox.getSelectedIndex() == 1) {
-                                // perform any term search
+                                // perform all/AND terms search
                                 JOptionPane.showMessageDialog(null,
-                                                "'any term' search placeholder",
+                                                "'all/AND terms' search placeholder",
                                                 "title", JOptionPane.INFORMATION_MESSAGE);
+                        } else if (searchTypeComboBox.getSelectedIndex() == 1) {
+                                // perform any/OR term search
+                                clickButtonActionPerformed(e);
                         } else {
                                 // perform exact phrase search
                                 JOptionPane.showMessageDialog(null,
@@ -253,7 +252,7 @@ public class GUI extends JFrame {
                 ) {
                     //Data will not be edited
                     boolean[] canEdit = new boolean [] {
-                        false, false
+                        false, false, false
                     };
 
                     @Override
@@ -309,58 +308,65 @@ public class GUI extends JFrame {
         }//End of public GUI
 	
             //Method to search text
-	private void clickButtonActionPerformed(ActionEvent e) {
-	 		
-		if(myList.toString().toLowerCase().contains(searchTextBox.getText().toLowerCase()))
-		{					
-			String[] listData = {filePath};
-            @SuppressWarnings("unchecked")
-			JList resultList = new JList(listData);
-            resultScrollPane.setViewportView(resultList);
-            resultList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-            resultList.setBorder(null);
-            resultList.setBackground(Color.WHITE);
-		}
-		else
-		{
-			String[] listData = {};
-            @SuppressWarnings("unchecked")
-			JList resultList = new JList(listData);
-            resultScrollPane.setViewportView(resultList);
-            resultList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-            resultList.setBorder(null);
-            resultList.setBackground(Color.WHITE);
-		}		
+	private void clickButtonActionPerformed(ActionEvent e) {	
+            if(myList.toString().toLowerCase().contains(searchTextBox.getText().toLowerCase()))
+            {					
+                String[] listData = {filePath};
+                @SuppressWarnings("unchecked")
+                JList resultList = new JList(listData);
+                resultScrollPane.setViewportView(resultList);
+                resultList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+                resultList.setBorder(null);
+                resultList.setBackground(Color.WHITE);
+            }
+            else
+            {
+                String[] listData = {};
+                @SuppressWarnings("unchecked")
+                JList resultList = new JList(listData);
+                resultScrollPane.setViewportView(resultList);
+                resultList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+                resultList.setBorder(null);
+                resultList.setBackground(Color.WHITE);
+            }		
  			
  	}
         //Method to add file to table
 	private void addFileButtonActionPerformed(ActionEvent e) {
-        int returnVal = fileChooser.showOpenDialog(null);
-        if (returnVal == JFileChooser.APPROVE_OPTION) {
-            File openFile = fileChooser.getSelectedFile();
-            
-            try {
-				Scanner input = new Scanner(openFile);
-				filePath = openFile.getAbsolutePath();
-				
-				myList = new ArrayList<>();
-				while(input.hasNextLine())
-				{
-					myList.add(input.nextLine());
-				}
-				
-			} catch (FileNotFoundException e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
-			}
-            
-            
-            DefaultTableModel model = (DefaultTableModel) indexTable.getModel(); 
-            java.util.Date date = new java.util.Date();
-            Timestamp Timestamp = (new Timestamp(date.getTime()));
-			model.addRow(new Object[]{openFile.getAbsolutePath(), "Indexed", Timestamp });
-        }
-    } 
+            int returnVal = fileChooser.showOpenDialog(null);
+            if (returnVal == JFileChooser.APPROVE_OPTION) {
+                File openFile = fileChooser.getSelectedFile();
+                if (openFile.exists()){
+                    try {
+                            Scanner input = new Scanner(openFile);
+                            filePath = openFile.getAbsolutePath();
+                            
+                            //Use fileList to work with files for the index
+                            fileList.add(filePath);
+                            
+                            myList = new ArrayList<>();
+                            while(input.hasNextLine())
+                            {
+                                    myList.add(input.nextLine());
+                            }
+
+                    } catch (FileNotFoundException e1) {
+                            // TODO Auto-generated catch block
+                            e1.printStackTrace();
+                    }
+
+                    //Create table model to manage table data
+                    DefaultTableModel model = (DefaultTableModel) indexTable.getModel(); 
+                    java.util.Date date = new java.util.Date();
+                    Timestamp Timestamp = (new Timestamp(date.getTime()));
+                    model.addRow(new Object[]{openFile.getAbsolutePath(), "Not Indexed", Timestamp });
+                }
+                else{
+                    JOptionPane.showMessageDialog(null, "File does not exist.",
+                                                        "Error", JOptionPane.WARNING_MESSAGE);
+                }
+            }
+        } 
         //Method to remove file from table
         private void removeFileButtonActionPerformed(ActionEvent e) {                                          
             //Create table model to manage table data
@@ -384,9 +390,29 @@ public class GUI extends JFrame {
                 }
                 response = JOptionPane.showConfirmDialog(null, "Do you want to remove file(s): " + removeTxt,
                                         "Remove File", JOptionPane.YES_NO_OPTION);
+                
+                //You guys can erase this testing
+                System.out.println(fileList.toString());
+                System.out.println("File list size is " + fileList.size());
+                //---------------------------------------
+                
                 //Remove the selected row(s)
                 if(response == JOptionPane.YES_OPTION){
                     for(int count = 0; count < rows.length; count++){
+                        //Can be use to remove file(s) in the list for index
+                        String fileName = indexTable.getModel().getValueAt((rows[count]-count),0).toString();
+                        
+                        //You guys can erase this testing
+                        System.out.println("\nFile to remove: " + fileName);
+                        //---------------------------------------------------
+                        
+                        fileList.remove(fileName);
+                        
+                        //You guys can erase these testing
+                        System.out.println(fileList.toString());
+                        System.out.println("File list size is " + fileList.size());
+                        //---------------------------------------------------------
+                        
                         model.removeRow(rows[count]-count);
                     }
                 }
