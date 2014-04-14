@@ -53,8 +53,9 @@ public class GUI extends JFrame {
 	private JPanel contentPane;
 	private JTextField searchTextBox;
 	private JTable indexTable = new JTable();
-        private ArrayList<String> fileList = new ArrayList();
-        //Create file chooser
+        private File listOfFile = new File("Files.txt");
+        private JLabel indexLabel = new JLabel();
+        private JPanel maintenancePanel = new JPanel();
 	final JFileChooser fileChooser = new JFileChooser();
 	private Object list;
 	private boolean searchResult;
@@ -225,7 +226,6 @@ public class GUI extends JFrame {
                 searchPanel.add(resultScrollPane);
 
                 // maintenance panel
-                JPanel maintenancePanel = new JPanel();
                 maintenancePanel.setBackground(customColor);
                 tabbedPane.addTab("Maintenance", null, maintenancePanel, null);
                 maintenancePanel.setLayout(null);
@@ -233,11 +233,9 @@ public class GUI extends JFrame {
                 // label describing number of indexed files
                 //Will need to find a way for the number of file(s) indexed to update
                 
-                JLabel indexLabel = new JLabel("Number of files currently indexed: " + indexTable.getRowCount());
-                indexLabel.setHorizontalAlignment(SwingConstants.CENTER);
-                indexLabel.setBounds(6, 6, 755, 16);
-                maintenancePanel.add(indexLabel);
-
+                //Update the number of indexed files
+                indexedFileCount();
+                
                 // scroll pane to hold table of indexed files
                 JScrollPane indexScrollPane = new JScrollPane();
                 indexScrollPane.setBounds(6, 34, 755, 417);
@@ -266,6 +264,11 @@ public class GUI extends JFrame {
                 indexScrollPane.setViewportView(indexTable);
                 indexTable.setBorder(null);
                 indexTable.setBackground(Color.WHITE);        
+                
+                //check file to create table of index files
+                if (listOfFile.exists()){
+                    checkTable();
+                }
                 
                 // button to add files to index
                 JButton addFileButton = new JButton("Add File to Index...");
@@ -307,7 +310,31 @@ public class GUI extends JFrame {
                 checkIndex(tabbedPane, INDEX_HEADER, VERSION_NUM, INDEX_FILE); // check index for changes
         }//End of public GUI
 	
-            //Method to search text
+        //Will update the number of files indexed
+        private void indexedFileCount(){
+            indexLabel.setText("Number of files currently indexed: " + indexTable.getRowCount());
+            indexLabel.setHorizontalAlignment(SwingConstants.CENTER);
+            indexLabel.setBounds(6, 6, 755, 16);
+            maintenancePanel.add(indexLabel);
+        }
+        
+        //Create table base on the files for index
+        private void checkTable(){
+            try {
+                Scanner inputFile = new Scanner(listOfFile);
+                DefaultTableModel model = (DefaultTableModel) indexTable.getModel();
+                while (inputFile.hasNext()){
+                    model.addRow(new Object[]{inputFile.nextLine(), "Not Indexed", "Not Timed" });
+                }
+                inputFile.close();
+                indexedFileCount();
+            } catch (FileNotFoundException ex) {
+                JOptionPane.showMessageDialog(null, "File does not exist (under checkTable).",
+                                                        "Error", JOptionPane.WARNING_MESSAGE);
+            }
+        }
+        
+        //Method to search text
 	private void clickButtonActionPerformed(ActionEvent e) {	
             if(myList.toString().toLowerCase().contains(searchTextBox.getText().toLowerCase()))
             {					
@@ -338,11 +365,17 @@ public class GUI extends JFrame {
                 File openFile = fileChooser.getSelectedFile();
                 if (openFile.exists()){
                     try {
+                            if(!listOfFile.exists()){
+                                listOfFile.createNewFile();
+                            }
+                            //Create a file with a list of files that can be read for index
+                            BufferedWriter writeFile = new BufferedWriter(new FileWriter(listOfFile.getName(), true));
+                            writeFile.write(openFile.getAbsolutePath());
+                            writeFile.newLine();
+                            writeFile.close();
+                            
                             Scanner input = new Scanner(openFile);
                             filePath = openFile.getAbsolutePath();
-                            
-                            //Use fileList to work with files for the index
-                            fileList.add(filePath);
                             
                             myList = new ArrayList<>();
                             while(input.hasNextLine())
@@ -351,8 +384,10 @@ public class GUI extends JFrame {
                             }
 
                     } catch (FileNotFoundException e1) {
-                            // TODO Auto-generated catch block
                             e1.printStackTrace();
+                    } catch (IOException ex) {
+                        JOptionPane.showMessageDialog(null, "File can not be written (under add button).",
+                                                        "Error", JOptionPane.WARNING_MESSAGE);
                     }
 
                     //Create table model to manage table data
@@ -360,6 +395,7 @@ public class GUI extends JFrame {
                     java.util.Date date = new java.util.Date();
                     Timestamp Timestamp = (new Timestamp(date.getTime()));
                     model.addRow(new Object[]{openFile.getAbsolutePath(), "Not Indexed", Timestamp });
+                    indexedFileCount();
                 }
                 else{
                     JOptionPane.showMessageDialog(null, "File does not exist.",
@@ -385,39 +421,38 @@ public class GUI extends JFrame {
                 String removeTxt = "\n";
                 int[] rows = indexTable.getSelectedRows();
                 for(int count = 0; count < rows.length; count++){
-                    Object removeFile = indexTable.getModel().getValueAt(rows[count],0);
-                    removeTxt += removeFile + "\n";
+                    removeTxt += indexTable.getModel().getValueAt(rows[count],0).toString() + "\n";
                 }
                 response = JOptionPane.showConfirmDialog(null, "Do you want to remove file(s): " + removeTxt,
                                         "Remove File", JOptionPane.YES_NO_OPTION);
-                
-                //You guys can erase this testing
-                System.out.println(fileList.toString());
-                System.out.println("File list size is " + fileList.size());
-                //---------------------------------------
-                
+               
                 //Remove the selected row(s)
                 if(response == JOptionPane.YES_OPTION){
                     for(int count = 0; count < rows.length; count++){
-                        //Can be use to remove file(s) in the list for index
-                        String fileName = indexTable.getModel().getValueAt((rows[count]-count),0).toString();
-                        
-                        //You guys can erase this testing
-                        System.out.println("\nFile to remove: " + fileName);
-                        //---------------------------------------------------
-                        
-                        fileList.remove(fileName);
-                        
-                        //You guys can erase these testing
-                        System.out.println(fileList.toString());
-                        System.out.println("File list size is " + fileList.size());
-                        //---------------------------------------------------------
-                        
                         model.removeRow(rows[count]-count);
                     }
+                    indexedFileCount();
+                    /*Will delete the current file with new content
+                    /based on the table*/
+                    listOfFile.delete();
+                    
+                    for(int count = 0; count < indexTable.getRowCount(); count++){
+                        try {
+                                if(!listOfFile.exists()){
+                                    listOfFile.createNewFile();
+                                }
+                                BufferedWriter writeFile = new BufferedWriter(new FileWriter(listOfFile.getName(), true));
+                                writeFile.write(indexTable.getModel().getValueAt(count,0).toString());
+                                writeFile.newLine();
+                                writeFile.close();
+                        } catch (IOException ex) {
+                            JOptionPane.showMessageDialog(null, "File can not be written (under remove button).",
+                                                        "Error", JOptionPane.WARNING_MESSAGE);
+                        }
+                    }
                 }
-            }        
-        } 
+            }
+        }
         
         // method that checks the index file for changes
         private void checkIndex(JTabbedPane p, String hdr, double vers, String file) {
