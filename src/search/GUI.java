@@ -38,6 +38,13 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.net.URL;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
+import java.util.TreeSet;
 import javax.swing.ImageIcon;
 import javax.swing.JFileChooser;
 import javax.swing.JTable;
@@ -62,7 +69,7 @@ public class GUI extends JFrame {
 	private JScrollPane resultScrollPane;
 	private List<String> myList;
 	private String filePath;
-	
+        
 	/**
 	 * main method to launch the application.
 	 */
@@ -109,7 +116,7 @@ public class GUI extends JFrame {
 		setLocationRelativeTo(null); // center the frame
                 
                 //Sets image icon for frame
-                java.net.URL imageURL = GUI.class.getResource("images/index.jpg");
+                URL imageURL = GUI.class.getResource("images/index.jpg");
                 ImageIcon icon = new ImageIcon(imageURL);
                 setIconImage(icon.getImage());
 
@@ -205,9 +212,7 @@ public class GUI extends JFrame {
                     public void actionPerformed(ActionEvent e) {
                         if (searchTypeComboBox.getSelectedIndex() == 0) {
                                 // perform all/AND terms search
-                                JOptionPane.showMessageDialog(null,
-                                                "'all/AND terms' search placeholder",
-                                                "title", JOptionPane.INFORMATION_MESSAGE);
+                                andSearchActionPerformed(e);
                         } else if (searchTypeComboBox.getSelectedIndex() == 1) {
                                 // perform any/OR term search
                                 clickButtonActionPerformed(e);
@@ -230,10 +235,7 @@ public class GUI extends JFrame {
                 tabbedPane.addTab("Maintenance", null, maintenancePanel, null);
                 maintenancePanel.setLayout(null);
 
-                // label describing number of indexed files
-                //Will need to find a way for the number of file(s) indexed to update
-                
-                //Update the number of indexed files
+                //Update the number of indexed files 
                 indexedFileCount();
                 
                 // scroll pane to hold table of indexed files
@@ -310,7 +312,7 @@ public class GUI extends JFrame {
                 checkIndex(tabbedPane, INDEX_HEADER, VERSION_NUM, INDEX_FILE); // check index for changes
         }//End of public GUI
 	
-        //Will update the number of files indexed
+        // label describing number of indexed files
         private void indexedFileCount(){
             indexLabel.setText("Number of files currently indexed: " + indexTable.getRowCount());
             indexLabel.setHorizontalAlignment(SwingConstants.CENTER);
@@ -334,7 +336,7 @@ public class GUI extends JFrame {
             }
         }
         
-        //Method to search text
+        //Method for OR search text
 	private void clickButtonActionPerformed(ActionEvent e) {	
             if(myList.toString().toLowerCase().contains(searchTextBox.getText().toLowerCase()))
             {					
@@ -358,6 +360,142 @@ public class GUI extends JFrame {
             }		
  			
  	}
+        //Perform AND boolean search
+        private void andSearchActionPerformed(ActionEvent e){
+            try {
+                    //Read user input in textbox and store each word in a list
+                    List<String> searchWords = Arrays.asList(searchTextBox.getText().toLowerCase().split("\\W+"));
+                    String blank = "";
+                    
+                    //Test whether the first element is blank then replace text
+                    if(searchWords.get(0).equals(blank)){
+                        searchWords = Arrays.asList(searchTextBox.getText().toLowerCase().replaceFirst("\\s+", "").split("\\W+"));
+                    }
+                    
+                    //TreeMap for file display
+                    Map<Integer, String> fileMap = new TreeMap<>();
+
+                    //HashMap for the searching word
+                    Map<String, TreeSet<Integer>> wordMap = new HashMap<>();
+                    
+                    //Change index file path if needed
+                    String indexPath = "SearchProjectIndex.txt";
+                    
+                    Scanner fileIndex = new Scanner(new BufferedReader(new FileReader(indexPath)));
+                    int lineNum = 1;
+                    int numberOfFiles = 0;
+                    
+                    fileIndex.useDelimiter(System.getProperty("line.separator"));
+                    //read the index file for searching
+                    while (fileIndex.hasNext()){
+                        Scanner lineScanner = new Scanner(fileIndex.next());
+                        if (lineNum == 1){
+                            //Gets header string but does nothing
+                            String search = lineScanner.nextLine();
+                        }
+                        else{
+                            if (lineNum == 2) {
+                            numberOfFiles = lineScanner.nextInt();
+                            }
+                            else{
+                                if (lineNum >= 4 && lineNum <= (3+numberOfFiles)){
+                                    int indexCount = lineScanner.nextInt();
+                                    String filePath = lineScanner.next();
+                                    //Gets file last modify but does nothing
+                                    int fileMod = lineScanner.nextInt();
+                                    fileMap.put(indexCount, filePath);
+                                }
+                                else{
+                                    if (lineNum >= (5+numberOfFiles)){
+                                        //TreeSet for the given file of the word
+                                        TreeSet<Integer> fileCountSet = new TreeSet<>();
+                                        
+                                        String wordSearch = lineScanner.next().toLowerCase();
+                                        String wordLine = lineScanner.nextLine().replaceFirst("\\s","").replaceAll(",\\d+","");
+                                        Scanner fileLineParse = new Scanner(wordLine);
+                                        while (fileLineParse.hasNextInt()){
+                                            int fileNumber = fileLineParse.nextInt();
+                                            fileCountSet.add(fileNumber);
+                                        }
+                                        wordMap.put(wordSearch, fileCountSet);
+                                    }
+                                }//End of third else
+                            }//End of second else
+                        }//End of first else
+                        lineNum++;
+                    }//End of while
+                    fileIndex.close();
+                    
+                    //Test whether the map key contains all the text in textbox before search
+                    boolean filesFound;
+                    if (wordMap.keySet().containsAll(searchWords)){
+                        filesFound = true;
+                    }
+                    else{
+                        filesFound = false;
+                    }
+                    
+                    if(filesFound == true){
+                        int count = 0;
+                        //Get a set of integer for files with all search words
+                        Set<Integer> fileFoundSet = new TreeSet<>(wordMap.get(searchWords.get(count)));
+                        while (count < searchWords.size()) {
+                            fileFoundSet.retainAll(wordMap.get(searchWords.get(count)));
+                            count++;
+                        }
+                        String[] listData = new String[fileFoundSet.size()];
+                        if(!fileFoundSet.isEmpty()){
+                            count = 0;
+                            for(Integer value: fileFoundSet){
+                                listData[count] = fileMap.get(value);
+                                count++;
+                            }
+                            //Method to display search result
+                            searchOutput(listData);
+                        }
+                        else{
+                            //Search words are not in same file(s)
+                            filesFound = false;
+                        }
+                    }
+                    //Test for all words that are not found and in the same file(s)
+                    if(filesFound == false){
+                        String filesNotFound = "Words: (";
+                        for(int count = 0; count < searchWords.size(); count++){
+                            //For just one search word
+                            if(searchWords.size() == 1){
+                                filesNotFound += " " + searchWords.get(count) + " ";
+                            }
+                            else{
+                                if(count != (searchWords.size()-1)){
+                                    filesNotFound += searchWords.get(count) + ", ";
+                                }
+                                else{
+                                    filesNotFound += " and " + searchWords.get(count);
+                                }
+                            }    
+                        }
+                        filesNotFound += ") were not found in the files.";
+                        String[] listData = {filesNotFound};
+                        //Method to display search result
+                        searchOutput(listData);
+                    }
+            } catch (FileNotFoundException ex) {
+                JOptionPane.showMessageDialog(null, "Can not search index file. Please rebuild the index file.",
+                                                        "Error", JOptionPane.WARNING_MESSAGE);
+            }
+        }
+        
+        //Method to display a list base on search
+        private void searchOutput(String[] listData){
+            @SuppressWarnings("unchecked")
+            JList resultList = new JList(listData);
+            resultScrollPane.setViewportView(resultList);
+            resultList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+            resultList.setBorder(null);
+            resultList.setBackground(Color.WHITE);
+        }
+        
         //Method to add file to table
 	private void addFileButtonActionPerformed(ActionEvent e) {
             int returnVal = fileChooser.showOpenDialog(null);
@@ -369,7 +507,7 @@ public class GUI extends JFrame {
                                 listOfFile.createNewFile();
                             }
                             //Create a file with a list of files that can be read for index
-                            BufferedWriter writeFile = new BufferedWriter(new FileWriter(listOfFile.getName(), true));
+                            BufferedWriter writeFile = new BufferedWriter(new FileWriter(listOfFile.getAbsoluteFile(), true));
                             writeFile.write(openFile.getAbsolutePath());
                             writeFile.newLine();
                             writeFile.close();
@@ -433,7 +571,7 @@ public class GUI extends JFrame {
                     }
                     indexedFileCount();
                     /*Will delete the current file with new content
-                    /based on the table*/
+                    based on the table*/
                     listOfFile.delete();
                     
                     for(int count = 0; count < indexTable.getRowCount(); count++){
@@ -441,7 +579,7 @@ public class GUI extends JFrame {
                                 if(!listOfFile.exists()){
                                     listOfFile.createNewFile();
                                 }
-                                BufferedWriter writeFile = new BufferedWriter(new FileWriter(listOfFile.getName(), true));
+                                BufferedWriter writeFile = new BufferedWriter(new FileWriter(listOfFile.getAbsoluteFile(), true));
                                 writeFile.write(indexTable.getModel().getValueAt(count,0).toString());
                                 writeFile.newLine();
                                 writeFile.close();
