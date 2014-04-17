@@ -1,4 +1,4 @@
-SearchProject 1.0
+SearchProject 1.2
 3
 
 0 /Users/John/Java/HelloWorld.txt 1393948365
