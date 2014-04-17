@@ -2,7 +2,6 @@ package search;
 
 // import required items
 import java.awt.EventQueue;
-import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
