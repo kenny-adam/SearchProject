@@ -39,6 +39,8 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.net.URL;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -66,7 +68,7 @@ public class GUI extends JFrame {
         private JLabel indexLabel = new JLabel();
         private JPanel maintenancePanel = new JPanel();
 	final JFileChooser fileChooser = new JFileChooser();
-	private Object list;
+        private Object list;
 	private boolean searchResult;
 	private JScrollPane resultScrollPane;
 	private List<String> myList;
@@ -332,7 +334,11 @@ public class GUI extends JFrame {
                 Scanner inputFile = new Scanner(listOfFile);
                 DefaultTableModel model = (DefaultTableModel) indexTable.getModel();
                 while (inputFile.hasNext()){
-                    model.addRow(new Object[]{inputFile.nextLine(), "Not Indexed", "Not Timed" });
+                    String filePath = inputFile.nextLine();
+                    if(inputFile.hasNextLong()){
+                        Date fileDate = new Date(inputFile.nextLong());
+                        model.addRow(new Object[]{filePath, "Not Indexed", fileDate });
+                    }
                 }
                 inputFile.close();
                 indexedFileCount();
@@ -513,10 +519,16 @@ public class GUI extends JFrame {
                             BufferedWriter writeFile;
                             if(!listOfFile.exists()){
                                 listOfFile.createNewFile();
-                                //Write the list of files to text base on table
+                                //Write the list of files to text base on table if "Files.txt" is remove while program is running
                                 for(int count = 0; count < indexTable.getRowCount(); count++){
                                     writeFile = new BufferedWriter(new FileWriter(listOfFile, true));
                                     writeFile.write(indexTable.getModel().getValueAt(count,0).toString());
+                                    writeFile.newLine();
+                                    String fileDateString = indexTable.getModel().getValueAt(count,2).toString();
+                                    SimpleDateFormat format = new SimpleDateFormat("EEE MMM dd HH:mm:ss z yyyy");
+                                    Date fileDate = format.parse(fileDateString);
+                                    Long fileDateLong = fileDate.getTime();
+                                    writeFile.write(fileDateLong.toString());
                                     writeFile.newLine();
                                     writeFile.close();
                                 }
@@ -525,13 +537,15 @@ public class GUI extends JFrame {
                             writeFile = new BufferedWriter(new FileWriter(listOfFile, true));
                             writeFile.write(openFile.getAbsolutePath());
                             writeFile.newLine();
+                            Long fileLastModified = openFile.lastModified();
+                            writeFile.write(fileLastModified.toString());
+                            writeFile.newLine();
                             writeFile.close();
                             
                             //Create table model to manage table data
                             DefaultTableModel model = (DefaultTableModel) indexTable.getModel(); 
-                            java.util.Date date = new java.util.Date();
-                            Timestamp Timestamp = (new Timestamp(date.getTime()));
-                            model.addRow(new Object[]{openFile.getAbsolutePath(), "Not Indexed", Timestamp });
+                            Date fileDate = new Date(openFile.lastModified());
+                            model.addRow(new Object[]{openFile.getAbsolutePath(), "Not Indexed", fileDate});
                             indexedFileCount();
                                  
                             Scanner input = new Scanner(openFile);
@@ -547,6 +561,9 @@ public class GUI extends JFrame {
                             e1.printStackTrace();
                     } catch (IOException ex) {
                         JOptionPane.showMessageDialog(null, "File can not be written (under add button).",
+                                                        "Error", JOptionPane.WARNING_MESSAGE);
+                    } catch (ParseException ex) {
+                        JOptionPane.showMessageDialog(null, "File date can not parse (under add button).",
                                                         "Error", JOptionPane.WARNING_MESSAGE);
                     }
                 }
@@ -595,10 +612,19 @@ public class GUI extends JFrame {
                                 writeFile = new BufferedWriter(new FileWriter(listOfFile, true));
                                 writeFile.write(indexTable.getModel().getValueAt(count,0).toString());
                                 writeFile.newLine();
+                                String fileDateString = indexTable.getModel().getValueAt(count,2).toString();
+                                SimpleDateFormat format = new SimpleDateFormat("EEE MMM dd HH:mm:ss z yyyy");
+                                Date fileDate = format.parse(fileDateString);
+                                Long fileDateLong = fileDate.getTime();
+                                writeFile.write(fileDateLong.toString());
+                                writeFile.newLine();
                                 writeFile.close();
                             }
                     } catch (IOException ex) {
                         JOptionPane.showMessageDialog(null, "File can not be written (under remove button).",
+                                                        "Error", JOptionPane.WARNING_MESSAGE);
+                    } catch (ParseException ex) {
+                        JOptionPane.showMessageDialog(null, "File date can not parse (under remove button).",
                                                         "Error", JOptionPane.WARNING_MESSAGE);
                     }
                 }//End of if
