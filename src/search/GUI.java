@@ -60,7 +60,9 @@ public class GUI extends JFrame {
 	private JPanel contentPane;
 	private JTextField searchTextBox;
 	private JTable indexTable = new JTable();
-        private File listOfFile = new File("Files.txt");
+        //The file "Files.txt" must exist or program will throw NullPointerException
+        private String fileLocation = GUI.class.getResource("Files.txt").getPath().replaceAll("%20", " ");
+        private File listOfFile = new File(fileLocation);
         private JLabel indexLabel = new JLabel();
         private JPanel maintenancePanel = new JPanel();
 	final JFileChooser fileChooser = new JFileChooser();
@@ -96,7 +98,6 @@ public class GUI extends JFrame {
 		final double VERSION_NUM = 1.2;
 		final String AUTHORS = "Adam Kenny, Dang Yang, Lloyd Pintac";
 		final String INDEX_HEADER = "SearchProject";
-		final int FILES_INDEXED = 0;
 		final String INDEX_FILE = "src/search/SearchProjectIndex.txt";
                 
 		//Creates custom color 
@@ -185,7 +186,7 @@ public class GUI extends JFrame {
                 searchTextBox.setText("Enter search term here");
                 searchTextBox.setBounds(6, 49, 475, 24);
                 searchPanel.add(searchTextBox);
-
+                searchTextBox.selectAll();
                 //Clears the text field when clicked
                 searchTextBox.addMouseListener(new MouseAdapter(){
                     @Override 
@@ -208,6 +209,8 @@ public class GUI extends JFrame {
                 findButton.setMnemonic('i');
                 findButton.setBounds(665, 46, 96, 32);
                 searchPanel.add(findButton);
+                //Set default enter/accept button
+                searchPanel.getRootPane().setDefaultButton(findButton);
                 findButton.addActionListener(new ActionListener() {
                     public void actionPerformed(ActionEvent e) {
                         if (searchTypeComboBox.getSelectedIndex() == 0) {
@@ -222,7 +225,10 @@ public class GUI extends JFrame {
                                                 "'exact phrase' search placeholder",
                                                 "title", JOptionPane.INFORMATION_MESSAGE);
                         }
-                        }
+                        //return focus to textfield when searching
+                        searchTextBox.requestFocus();
+                        searchTextBox.selectAll();
+                    }
                 });
 
                 // scroll pane to hold result listing
@@ -379,9 +385,10 @@ public class GUI extends JFrame {
                     Map<String, TreeSet<Integer>> wordMap = new HashMap<>();
                     
                     //Change index file path if needed
-                    String indexPath = "SearchProjectIndex.txt";
+                    String indexPath = GUI.class.getResource("SearchProjectIndex.txt").getPath().replaceAll("%20", " ");
+                    File indexFile = new File(indexPath);
                     
-                    Scanner fileIndex = new Scanner(new BufferedReader(new FileReader(indexPath)));
+                    Scanner fileIndex = new Scanner(indexFile);
                     int lineNum = 1;
                     int numberOfFiles = 0;
                     
@@ -503,15 +510,30 @@ public class GUI extends JFrame {
                 File openFile = fileChooser.getSelectedFile();
                 if (openFile.exists()){
                     try {
+                            BufferedWriter writeFile;
                             if(!listOfFile.exists()){
                                 listOfFile.createNewFile();
+                                //Write the list of files to text base on table
+                                for(int count = 0; count < indexTable.getRowCount(); count++){
+                                    writeFile = new BufferedWriter(new FileWriter(listOfFile, true));
+                                    writeFile.write(indexTable.getModel().getValueAt(count,0).toString());
+                                    writeFile.newLine();
+                                    writeFile.close();
+                                }
                             }
                             //Create a file with a list of files that can be read for index
-                            BufferedWriter writeFile = new BufferedWriter(new FileWriter(listOfFile.getAbsoluteFile(), true));
+                            writeFile = new BufferedWriter(new FileWriter(listOfFile, true));
                             writeFile.write(openFile.getAbsolutePath());
                             writeFile.newLine();
                             writeFile.close();
                             
+                            //Create table model to manage table data
+                            DefaultTableModel model = (DefaultTableModel) indexTable.getModel(); 
+                            java.util.Date date = new java.util.Date();
+                            Timestamp Timestamp = (new Timestamp(date.getTime()));
+                            model.addRow(new Object[]{openFile.getAbsolutePath(), "Not Indexed", Timestamp });
+                            indexedFileCount();
+                                 
                             Scanner input = new Scanner(openFile);
                             filePath = openFile.getAbsolutePath();
                             
@@ -527,13 +549,6 @@ public class GUI extends JFrame {
                         JOptionPane.showMessageDialog(null, "File can not be written (under add button).",
                                                         "Error", JOptionPane.WARNING_MESSAGE);
                     }
-
-                    //Create table model to manage table data
-                    DefaultTableModel model = (DefaultTableModel) indexTable.getModel(); 
-                    java.util.Date date = new java.util.Date();
-                    Timestamp Timestamp = (new Timestamp(date.getTime()));
-                    model.addRow(new Object[]{openFile.getAbsolutePath(), "Not Indexed", Timestamp });
-                    indexedFileCount();
                 }
                 else{
                     JOptionPane.showMessageDialog(null, "File does not exist.",
@@ -566,31 +581,29 @@ public class GUI extends JFrame {
                
                 //Remove the selected row(s)
                 if(response == JOptionPane.YES_OPTION){
-                    for(int count = 0; count < rows.length; count++){
-                        model.removeRow(rows[count]-count);
-                    }
-                    indexedFileCount();
-                    /*Will delete the current file with new content
-                    based on the table*/
-                    listOfFile.delete();
-                    
-                    for(int count = 0; count < indexTable.getRowCount(); count++){
-                        try {
-                                if(!listOfFile.exists()){
-                                    listOfFile.createNewFile();
-                                }
-                                BufferedWriter writeFile = new BufferedWriter(new FileWriter(listOfFile.getAbsoluteFile(), true));
+                    try {
+                            for(int count = 0; count < rows.length; count++){
+                                model.removeRow(rows[count]-count);
+                            }
+                            indexedFileCount();
+                            BufferedWriter writeFile = new BufferedWriter(new FileWriter(listOfFile, false));
+                            writeFile.write("");
+                            writeFile.close();
+
+                            //Write to text file the number of files base on table
+                            for(int count = 0; count < indexTable.getRowCount(); count++){
+                                writeFile = new BufferedWriter(new FileWriter(listOfFile, true));
                                 writeFile.write(indexTable.getModel().getValueAt(count,0).toString());
                                 writeFile.newLine();
                                 writeFile.close();
-                        } catch (IOException ex) {
-                            JOptionPane.showMessageDialog(null, "File can not be written (under remove button).",
+                            }
+                    } catch (IOException ex) {
+                        JOptionPane.showMessageDialog(null, "File can not be written (under remove button).",
                                                         "Error", JOptionPane.WARNING_MESSAGE);
-                        }
                     }
-                }
-            }
-        }
+                }//End of if
+            }//End of first else
+        }//End of remove file button
         
         // method that checks the index file for changes
         private void checkIndex(JTabbedPane p, String hdr, double vers, String file) {

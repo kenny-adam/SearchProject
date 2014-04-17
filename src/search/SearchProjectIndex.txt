@@ -1,2 +1,14 @@
-SearchProject 1.2
-0
+SearchProject 1.0
+3
+
+0 /Users/John/Java/HelloWorld.txt 1393948365
+1 /Users/Jane/books/TheHobbit.txt 1393948366
+2 /Users/Doug/Word/Dictionary.txt 0000000034
+
+hello 0,0 1,422
+world 0,1
+Bilbo 0,2 1,423 1,524 1,987 1,2341
+Baggins 1,12 1,342 1,543 1,897
+red 1,98 2,32
+food 2,65 0,75
+blake 2,54 2,345 1,47
